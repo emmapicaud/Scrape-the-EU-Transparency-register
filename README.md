@@ -1,4 +1,4 @@
-# EU Transparency Register Scraper — "Deforestation" Search
+# EU Transparency Register Scraper — By keyword Search
 
 This repository contains a Python script that scrapes the [EU Transparency Register](https://transparency-register.europa.eu/) to collect all organisations and entries matching the search term **"deforestation"**, and exports the results to a CSV file for further analysis.
 
