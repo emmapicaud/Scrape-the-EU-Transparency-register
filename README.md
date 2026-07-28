@@ -38,13 +38,6 @@ The EU Transparency Register lists organisations (companies, NGOs, consultancies
 5. **Deduplication check**
    As a data-quality check, the script computes the number of unique values in the `REG Number` column (`df["REG Number"].nunique()`) to verify how many distinct organisations were actually captured, since the same organisation could in principle appear more than once across paginated results.
 
-## Methodology notes
-
-- **Incremental development**: the script was built iteratively — an initial exploratory request was used to inspect the raw HTML structure (`soup.prettify()`) before writing the extraction logic; a small-scale test loop (4 pages) was then used to validate pagination behavior before scaling up to a full run.
-- **Adaptive stopping condition**: rather than assuming a fixed number of pages, the final version of the script stops as soon as an empty page is encountered, making it robust to changes in the total number of results for the query.
-- **Generic field extraction**: extracting `dt`/`dd` pairs generically (instead of hardcoding column names) makes the scraper resilient to layout or field changes on the register's website.
-- **Politeness / robustness**: a browser-like `User-Agent` and `Referer` header are used to reduce the likelihood of requests being rejected by the server.
-
 ## Requirements
 
 ```
