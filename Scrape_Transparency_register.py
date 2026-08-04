@@ -1,5 +1,5 @@
 """
-EU Transparency Register Scraper — "deforestation" search
+EU Transparency Register Scraper — 
 ------------------------------------------------------------
 
 This script queries the public search interface of the EU Transparency
@@ -9,8 +9,10 @@ the results to a CSV file.
 See README.md for a full description of the methodology.
 """
 
+import re
 import requests
 from bs4 import BeautifulSoup
+from urllib.parse import urlparse, parse_qs
 import pandas as pd
 
 # ---------------------------------------------------------------------
@@ -18,15 +20,33 @@ import pandas as pd
 # ---------------------------------------------------------------------
 
 SEARCH_URL = "https://ec.europa.eu/transparencyregister/public/search"
-QUERY_TEXT = "deforestation"
+DETAIL_BASE = "https://transparency-register.europa.eu/"
+QUERY_TEXT = "eudr"
 LANG = "en"
-OUTPUT_CSV = "EU_transparency_scraping.csv"
+OUTPUT_CSV = "transparency_register_eudr.csv"
 MAX_PAGES = 500  # safety limit; the loop stops earlier once a page is empty
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0",
     "Referer": "https://transparency-register.europa.eu/"
 }
+
+
+def extract_id_from_href(href: str) -> str | None:
+    """Extract the registration id from a detail-page href.
+
+    Useful as a standalone column (e.g. to cross-reference with LobbyFacts).
+    """
+    if not href:
+        return None
+    parsed = urlparse(href)
+    qs = parse_qs(parsed.query)
+    if "id" in qs and qs["id"]:
+        return qs["id"][0]
+    m = re.search(r"(\d{8,13}-\d{2})", href)
+    if m:
+        return m.group(1)
+    return None
 
 
 def parse_page(html: str) -> list[dict]:
@@ -42,9 +62,12 @@ def parse_page(html: str) -> list[dict]:
         link_tag = article.select_one("h1 a.ecl-link")
 
         entry["name"] = name_tag.get_text(strip=True) if name_tag else None
+        entry["registration_id"] = (
+            extract_id_from_href(link_tag["href"]) if link_tag else None
+        )
         entry["detail_url"] = (
-            "https://ec.europa.eu/transparencyregister/public/" + link_tag["href"]
-            if link_tag and link_tag.has_attr("href")
+            DETAIL_BASE + link_tag["href"]
+            if link_tag and link_tag.get("href")
             else None
         )
 
@@ -76,7 +99,7 @@ def scrape_all_pages() -> pd.DataFrame:
         response = requests.get(SEARCH_URL, params=params, headers=HEADERS)
         page_entries = parse_page(response.text)
 
-        print(f"Page {page}: {len(page_entries)} result(s)")
+        print(f"Page {page}: {len(page_entries)} résultats")
 
         if not page_entries:
             break
@@ -89,7 +112,7 @@ def scrape_all_pages() -> pd.DataFrame:
 def main():
     df = scrape_all_pages()
 
-    print("Total entries collected:", len(df))
+    print("Total :", len(df))
     if "REG Number" in df.columns:
         print("Unique organisations (by REG Number):", df["REG Number"].nunique())
 
