@@ -1,4 +1,4 @@
-# EU Transparency Register Scraper — "EUDR" Search
+# EU Transparency Register Scraper — By Keyword Search
 
 This repository contains a Python script that scrapes the [EU Transparency Register](https://transparency-register.europa.eu/) to collect all organisations and entries matching the search term **"eudr"** (EU Deforestation Regulation), and exports the results to a CSV file for further analysis.
 
